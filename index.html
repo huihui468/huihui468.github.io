@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huangdao Cycling & Contour Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 18px; font-weight: 500; }
+        .author { font-size: 14px; opacity: 0.8; }
+        
+        #map { width: 100vw; height: calc(100vh - 56px); }
+        
+        .control-panel {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            width: 220px;
+        }
+        .route-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 0;
+            margin: 5px 0;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .route-btn:hover { background: #2980b9; }
+        
+        .opacity-control {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+        .opacity-control input {
+            width: 100%;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Huangdao District Cycling & Contour Map</h1>
+        <div class="author">Created by: Cao Guanghui</div>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="control-panel">
+        <button class="route-btn" id="coastalRoute">Coastal Route (Easy)</button>
+        <button class="route-btn" id="hillyRoute">Hilly Route (Challenging)</button>
+        <button class="route-btn" id="cityRoute">City Loop (Leisure)</button>
+        <button class="route-btn" id="clearRoute">Clear All Routes</button>
+        
+        <div class="opacity-control">
+            <label>Contour Opacity:</label>
+            <input type="range" id="opacitySlider" min="0" max="1" step="0.1" value="0.8">
+        </div>
+    </div>
+
+    <script>
+        // 初始化地图（黄岛区中心）
+        const map = L.map('map').setView([35.99, 120.17], 12);
+map.setZoom(12);
+        // 加载基础地图（可选，可删除）
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // 核心：加载你的瓦片（路径和你的文件夹名一致）
+        const contourLayer = L.tileLayer('tiles_huangdao/{z}/{x}/{y}.png', {
+            tms: false, // 你的瓦片是TMS格式，必须加这个！
+            minZoom: 10, // 你的瓦片最小级别是10
+            maxZoom: 13, // 你的瓦片最大级别是13
+            opacity: 0.8
+        }).addTo(map);
+
+        // 骑行路线（可自定义坐标）
+        const coastalRoute = L.polyline([[35.95, 120.20], [35.97, 120.25], [36.00, 120.28], [36.02, 120.30]], { color: '#3498db', weight: 5 });
+        const hillyRoute = L.polyline([[35.90, 120.10], [35.93, 120.15], [35.96, 120.12], [35.99, 120.10]], { color: '#e74c3c', weight: 5 });
+        const cityRoute = L.polyline([[36.00, 120.15], [36.02, 120.18], [36.00, 120.20], [35.98, 120.17]], { color: '#27ae60', weight: 5 });
+
+        // 路线按钮事件
+        document.getElementById('coastalRoute').onclick = () => {
+            map.removeLayer(hillyRoute); map.removeLayer(cityRoute);
+            coastalRoute.addTo(map); map.fitBounds(coastalRoute.getBounds());
+        };
+        document.getElementById('hillyRoute').onclick = () => {
+            map.removeLayer(coastalRoute); map.removeLayer(cityRoute);
+            hillyRoute.addTo(map); map.fitBounds(hillyRoute.getBounds());
+        };
+        document.getElementById('cityRoute').onclick = () => {
+            map.removeLayer(coastalRoute); map.removeLayer(hillyRoute);
+            cityRoute.addTo(map); map.fitBounds(cityRoute.getBounds());
+        };
+        document.getElementById('clearRoute').onclick = () => {
+            map.removeLayer(coastalRoute); map.removeLayer(hillyRoute); map.removeLayer(cityRoute);
+        };
+
+        // 调节等高线透明度
+        document.getElementById('opacitySlider').addEventListener('input', (e) => {
+            contourLayer.setOpacity(parseFloat(e.target.value));
+        });
+    </script>
+</body>
+</html>
